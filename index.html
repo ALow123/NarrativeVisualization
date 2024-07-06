@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+    <head>
+        <!-- Metadata -->
+        <meta charset="UTF-8">
+        <meta name="author" content="Aaron Low">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Narrative Visualization</title>
+        
+        <!-- All JavaScript files and libraries -->
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+
+        <!-- Styling -->
+        <style> path {stroke:black;}</style>
+    </head>
+    <body onload="loadData()">
+        <div id="yearsBar"></div>
+        <div id="wildfireChart"></div>
+        <script>
+            var years = ['All', '2012','2013','2014','2015', "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
+            yearsBar = d3.select('#yearsBar')
+                .selectAll('button')
+                .data(years)
+                .enter()
+                .append('button')
+                    .attr('width', 200)
+                    .attr('height', 100)
+                    .text(function(d, i) {return d})
+                .on("click", function(d) { drawChart(d) });
+
+            function drawChart(years) {
+
+                const data = {
+                    'All':[1,2,3], 
+                    '2012':[1,2,4],
+                    '2013':[1,2,5],
+                    '2014':[1,2,6],
+                    '2015':[1,2,7], 
+                    "2016":[1,2,8], 
+                    "2017":[1,2,9], 
+                    "2018":[1,2,10], 
+                    "2019":[1,2,11], 
+                    "2020":[1,2,12], 
+                    "2021":[1,2,13], 
+                    "2022":[1,2,14]
+                }
+
+                d3.select('#wildfireChart')
+                    .selectAll('*')
+                    .remove();
+
+                wildfireChart = d3.select('#wildfireChart')
+                    .selectAll('p')
+                    .data(data[years])
+                    .enter()
+                    .append('p')
+                        .attr('width', 200)
+                        .attr('height', 100)
+                        .text(function(d, i) { return d });
+            }
+
+            async function loadData () {
+
+                const annualAreaBurntPath = 'data/2-annual-area-burnt-by-wildfires.csv'
+                const shareOfTotalLandBurntPath ='data/3-share-of-the-total-land-area-burnt-by-wildfires-each-year.csv'
+                const annualBurnedAreaLandcoverPath = 'data/5-annual-burned-area-by-landcover.csv'
+
+                const annualAreaBurntData = await d3.csv(annualAreaBurntPath)
+                const shareOfTotalLandBurntData = await d3.csv(shareOfTotalLandBurntPath)
+                const annualBurnedAreaLandcoverData = await d3.csv(annualBurnedAreaLandcoverPath)
+
+                console.log(annualAreaBurntData)
+                console.log(shareOfTotalLandBurntData)
+                console.log(annualBurnedAreaLandcoverData)
+            }
+            function breakdownData(data) {
+
+            }
+            function breakdownMetadata(data) {
+                
+            }
+        </script>
+
+    </body>
+</html>
