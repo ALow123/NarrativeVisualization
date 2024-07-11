@@ -64,19 +64,161 @@
                 const shareOfTotalLandBurntPath ='data/3-share-of-the-total-land-area-burnt-by-wildfires-each-year.csv'
                 const annualBurnedAreaLandcoverPath = 'data/5-annual-burned-area-by-landcover.csv'
 
-                const annualAreaBurntData = await d3.csv(annualAreaBurntPath)
-                const shareOfTotalLandBurntData = await d3.csv(shareOfTotalLandBurntPath)
-                const annualBurnedAreaLandcoverData = await d3.csv(annualBurnedAreaLandcoverPath)
+                const annualAreaBurntColumnName = 'Annual area burnt by wildfires';
+                const shareOfTotalLandBurntColumnName = 'Annual share of the total land area burnt by wildfires';
+
+                const annualAreaBurntCSV = await d3.csv(annualAreaBurntPath)
+                const shareOfTotalLandBurntCSV = await d3.csv(shareOfTotalLandBurntPath)
+                const annualBurnedAreaLandcoverCSV = await d3.csv(annualBurnedAreaLandcoverPath)
+
+                let annualAreaBurntData = await axisAndPointsBreakdown(annualAreaBurntCSV, annualAreaBurntColumnName)
+                let shareOfTotalLandBurntData = await axisAndPointsBreakdown(shareOfTotalLandBurntCSV, shareOfTotalLandBurntColumnName)
 
                 console.log(annualAreaBurntData)
                 console.log(shareOfTotalLandBurntData)
+
+                let annualBurnedAreaLandcoverData = await areaLandDataBreakdown(annualBurnedAreaLandcoverCSV, shareOfTotalLandBurntColumnName)
+
                 console.log(annualBurnedAreaLandcoverData)
-            }
-            function breakdownData(data) {
 
             }
-            function breakdownMetadata(data) {
-                
+
+            /*
+            Function axisAndPointsBreakdown used to breakdown data for the two axis and plotting points for each country.
+            Data that is brokendown is the annualAreaBurntCSV and shareofTotalLandBurntCSV
+            Parameters:
+                1. Data (Pass in list of objects, each object containing the country, year, and data point)
+                2. Column name for that data point
+            Return: List of dictionaries 
+                1. Data points for each year and average for all years for each country 
+                2. Minimum Data point for each year
+                3. Maximum Data point for each year
+            */
+            async function axisAndPointsBreakdown(data, dataColumnName) {
+
+                let min_area_burnt = {}
+                let max_area_burnt = {}
+                let country_data = {}
+
+                let curr_country = "";
+                let country_area_sum = 0;
+                let country_year_count = 0;
+
+                let area_burnt = 0;
+                let country = "";
+                let year = 0;
+
+                for (row of data)
+                {
+                    area_burnt = parseInt(row[dataColumnName]);
+                    country = row['Entity'];
+                    year = row['Year'];
+
+                    if (curr_country != country)
+                    {
+                        //Add data point for average data across all years
+                        if (curr_country != "")
+                        {
+                            country_data[curr_country]['All'] = country_area_sum / country_year_count;
+                        }
+
+                        //Add new country to list 
+                        country_data[country] = {};
+
+                        //Set current country to new country
+                        curr_country = country;
+
+                        //Reset Variables
+                        country_area_sum = 0;
+                        country_year_count = 0;
+                    }
+
+                    //Add data point to country
+                    country_data[country][year] = area_burnt;
+
+                    //Set min and max
+                    if (min_area_burnt[year] == undefined)
+                    {
+                        min_area_burnt[year] = area_burnt;
+                    }
+                    else 
+                    {
+                        min_area_burnt[year] = Math.min(min_area_burnt[year], area_burnt);
+                    }
+                    if (max_area_burnt[year] == undefined)
+                    {
+                        max_area_burnt[year] = area_burnt;
+                    }
+                    else 
+                    {
+                        max_area_burnt[year] = Math.max(max_area_burnt[year], area_burnt);
+                    }
+
+                    //Add to average data for country
+                    country_area_sum += area_burnt;
+                    country_year_count++;
+                }
+
+                //Sum and Add all data for last country
+                country_data[curr_country]['All'] = country_area_sum / country_year_count;
+
+                return [country_data, min_area_burnt, max_area_burnt]
+
+            }
+
+            /*
+            Function areaLandDataBreakdown used to determine size of circles
+            Data that is brokendown is the annualBurnedAreaLandcoverCSV
+            Parameters:
+                1. Data (Pass in list of objects, each object containing the country, year, and data points)
+            Return: Dictionary 
+                1. Data points for each year and average for all years for each country 
+            */
+            async function areaLandDataBreakdown(data) {
+
+                let country_data = {}
+
+                let curr_country = "";
+                let country = "";
+                let year = 0;
+
+                let croplands_burnt = 0;
+                let forests_burnt = 0;
+                let others_categories_burnt = 0;
+                let savannas_burnt = 0;
+                let shurblands_grasslands_burnt = 0;
+
+                for (row of data)
+                {
+                    croplands_burnt = parseInt(row['Yearly burned area across croplands']);
+                    forests_burnt = parseInt(row['Yearly burned area across forests']);
+                    others_categories_burnt = parseInt(row['Yearly burned area across other land categories']);
+                    savannas_burnt = parseInt(row['Yearly burned area across savannas']);
+                    shurblands_grasslands_burnt = parseInt(row['Yearly burned area across shrublands and grasslands']);
+
+                    country = row['Entity'];
+                    year = row['Year'];
+
+                    if (curr_country != country)
+                    {
+                        //Add new country to list 
+                        country_data[country] = {};
+
+                        //Set current country to new country
+                        curr_country = country;
+                    }
+
+                    //Add data point to country
+                    country_data[country][year] = {};
+                    country_data[country][year]['Croplands'] = croplands_burnt;
+                    country_data[country][year]['Forests'] = forests_burnt;
+                    country_data[country][year]['Others'] = others_categories_burnt;
+                    country_data[country][year]['Savannas'] = savannas_burnt;
+                    country_data[country][year]['ShrublandsGrasslands'] = shurblands_grasslands_burnt;
+                }
+
+                return country_data
+
             }
         </script>
 
