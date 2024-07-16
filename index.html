@@ -8,219 +8,48 @@
         
         <!-- All JavaScript files and libraries -->
         <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+        <script src="index.js"></script>
 
         <!-- Styling -->
-        <style> path {stroke:black;}</style>
+        <link rel="stylesheet" href="index.css">
     </head>
-    <body onload="loadData()">
+    <body onload="loadInitialChart()">
+
+        <!-- HTML Introduction -->
+        <div id="Intro">
+            <h1 id="pageTitle">Wildfire Effects over the Decades</h1>
+            <h3 id="pageTitle">How Different Types of Landcovers are Affected</h3>
+            <p id="summaryText">
+                As it is the summer season, wildfires can appear a lot and occur many times all over the world. 
+                These wildfires can be caused by many factors both human and natural, but either way, wildfires can destroy many habitats and societal structures.
+                <br>
+                <br>
+                We often think of forests when wildfires occur, however, in the following graphic you will find that many other different types of landcovers burn more.
+                In many of the years, you will find that savannas and shurblands/grasslands will often have more area burnt than forests. 
+                Additionally, some years croplands will have a greater area burnt.
+                <br>
+                <br>
+                Click the 'Next' and 'Prev' buttons to see how much land is burnt for different landcovers and the change in area burnt per year over the decade!
+                <br>
+                <br>
+                Hover over the bars to see how much land was burnt!
+            </p>
+        </div>
+
+        <!-- Tool -->
+        <div id="tooltip" opacity=0></div>
+
+        <!-- Charts -->
         <div id="yearsBar"></div>
-        <div id="wildfireChart"></div>
-        <script>
-            var years = ['All', '2012','2013','2014','2015', "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
-            yearsBar = d3.select('#yearsBar')
-                .selectAll('button')
-                .data(years)
-                .enter()
-                .append('button')
-                    .attr('width', 200)
-                    .attr('height', 100)
-                    .text(function(d, i) {return d})
-                .on("click", function(d) { drawChart(d) });
+        <div id="landCoverDiv">
+            <svg id="landCoverChart" width=1200 height=650></svg>
+            <div id="landCoverCountries"></div>
+        </div>
 
-            function drawChart(years) {
-
-                const data = {
-                    'All':[1,2,3], 
-                    '2012':[1,2,4],
-                    '2013':[1,2,5],
-                    '2014':[1,2,6],
-                    '2015':[1,2,7], 
-                    "2016":[1,2,8], 
-                    "2017":[1,2,9], 
-                    "2018":[1,2,10], 
-                    "2019":[1,2,11], 
-                    "2020":[1,2,12], 
-                    "2021":[1,2,13], 
-                    "2022":[1,2,14]
-                }
-
-                d3.select('#wildfireChart')
-                    .selectAll('*')
-                    .remove();
-
-                wildfireChart = d3.select('#wildfireChart')
-                    .selectAll('p')
-                    .data(data[years])
-                    .enter()
-                    .append('p')
-                        .attr('width', 200)
-                        .attr('height', 100)
-                        .text(function(d, i) { return d });
-            }
-
-            async function loadData () {
-
-                const annualAreaBurntPath = 'data/2-annual-area-burnt-by-wildfires.csv'
-                const shareOfTotalLandBurntPath ='data/3-share-of-the-total-land-area-burnt-by-wildfires-each-year.csv'
-                const annualBurnedAreaLandcoverPath = 'data/5-annual-burned-area-by-landcover.csv'
-
-                const annualAreaBurntColumnName = 'Annual area burnt by wildfires';
-                const shareOfTotalLandBurntColumnName = 'Annual share of the total land area burnt by wildfires';
-
-                const annualAreaBurntCSV = await d3.csv(annualAreaBurntPath)
-                const shareOfTotalLandBurntCSV = await d3.csv(shareOfTotalLandBurntPath)
-                const annualBurnedAreaLandcoverCSV = await d3.csv(annualBurnedAreaLandcoverPath)
-
-                let annualAreaBurntData = await axisAndPointsBreakdown(annualAreaBurntCSV, annualAreaBurntColumnName)
-                let shareOfTotalLandBurntData = await axisAndPointsBreakdown(shareOfTotalLandBurntCSV, shareOfTotalLandBurntColumnName)
-
-                console.log(annualAreaBurntData)
-                console.log(shareOfTotalLandBurntData)
-
-                let annualBurnedAreaLandcoverData = await areaLandDataBreakdown(annualBurnedAreaLandcoverCSV, shareOfTotalLandBurntColumnName)
-
-                console.log(annualBurnedAreaLandcoverData)
-
-            }
-
-            /*
-            Function axisAndPointsBreakdown used to breakdown data for the two axis and plotting points for each country.
-            Data that is brokendown is the annualAreaBurntCSV and shareofTotalLandBurntCSV
-            Parameters:
-                1. Data (Pass in list of objects, each object containing the country, year, and data point)
-                2. Column name for that data point
-            Return: List of dictionaries 
-                1. Data points for each year and average for all years for each country 
-                2. Minimum Data point for each year
-                3. Maximum Data point for each year
-            */
-            async function axisAndPointsBreakdown(data, dataColumnName) {
-
-                let min_area_burnt = {}
-                let max_area_burnt = {}
-                let country_data = {}
-
-                let curr_country = "";
-                let country_area_sum = 0;
-                let country_year_count = 0;
-
-                let area_burnt = 0;
-                let country = "";
-                let year = 0;
-
-                for (row of data)
-                {
-                    area_burnt = parseInt(row[dataColumnName]);
-                    country = row['Entity'];
-                    year = row['Year'];
-
-                    if (curr_country != country)
-                    {
-                        //Add data point for average data across all years
-                        if (curr_country != "")
-                        {
-                            country_data[curr_country]['All'] = country_area_sum / country_year_count;
-                        }
-
-                        //Add new country to list 
-                        country_data[country] = {};
-
-                        //Set current country to new country
-                        curr_country = country;
-
-                        //Reset Variables
-                        country_area_sum = 0;
-                        country_year_count = 0;
-                    }
-
-                    //Add data point to country
-                    country_data[country][year] = area_burnt;
-
-                    //Set min and max
-                    if (min_area_burnt[year] == undefined)
-                    {
-                        min_area_burnt[year] = area_burnt;
-                    }
-                    else 
-                    {
-                        min_area_burnt[year] = Math.min(min_area_burnt[year], area_burnt);
-                    }
-                    if (max_area_burnt[year] == undefined)
-                    {
-                        max_area_burnt[year] = area_burnt;
-                    }
-                    else 
-                    {
-                        max_area_burnt[year] = Math.max(max_area_burnt[year], area_burnt);
-                    }
-
-                    //Add to average data for country
-                    country_area_sum += area_burnt;
-                    country_year_count++;
-                }
-
-                //Sum and Add all data for last country
-                country_data[curr_country]['All'] = country_area_sum / country_year_count;
-
-                return [country_data, min_area_burnt, max_area_burnt]
-
-            }
-
-            /*
-            Function areaLandDataBreakdown used to determine size of circles
-            Data that is brokendown is the annualBurnedAreaLandcoverCSV
-            Parameters:
-                1. Data (Pass in list of objects, each object containing the country, year, and data points)
-            Return: Dictionary 
-                1. Data points for each year and average for all years for each country 
-            */
-            async function areaLandDataBreakdown(data) {
-
-                let country_data = {}
-
-                let curr_country = "";
-                let country = "";
-                let year = 0;
-
-                let croplands_burnt = 0;
-                let forests_burnt = 0;
-                let others_categories_burnt = 0;
-                let savannas_burnt = 0;
-                let shurblands_grasslands_burnt = 0;
-
-                for (row of data)
-                {
-                    croplands_burnt = parseInt(row['Yearly burned area across croplands']);
-                    forests_burnt = parseInt(row['Yearly burned area across forests']);
-                    others_categories_burnt = parseInt(row['Yearly burned area across other land categories']);
-                    savannas_burnt = parseInt(row['Yearly burned area across savannas']);
-                    shurblands_grasslands_burnt = parseInt(row['Yearly burned area across shrublands and grasslands']);
-
-                    country = row['Entity'];
-                    year = row['Year'];
-
-                    if (curr_country != country)
-                    {
-                        //Add new country to list 
-                        country_data[country] = {};
-
-                        //Set current country to new country
-                        curr_country = country;
-                    }
-
-                    //Add data point to country
-                    country_data[country][year] = {};
-                    country_data[country][year]['Croplands'] = croplands_burnt;
-                    country_data[country][year]['Forests'] = forests_burnt;
-                    country_data[country][year]['Others'] = others_categories_burnt;
-                    country_data[country][year]['Savannas'] = savannas_burnt;
-                    country_data[country][year]['ShrublandsGrasslands'] = shurblands_grasslands_burnt;
-                }
-
-                return country_data
-
-            }
-        </script>
-
+        <!-- Data source -->
+        <div id="dataSource">
+            *Data Source: <a href="https://www.kaggle.com/datasets/imtkaggleteam/wildfires/data">https://www.kaggle.com/datasets/imtkaggleteam/wildfires/data</a>
+        </div>
     </body>
 </html>

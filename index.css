@@ -1,0 +1,55 @@
+#Intro {
+    width: 800px;
+    margin: auto;
+}
+#pageTitle {
+    text-align: center;
+}
+#summaryText {
+    text-align: left;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+path {
+    stroke:black;
+}
+#tooltip {
+    z-index: 3;
+    opacity: 0;
+    position: absolute;
+    text-align: left;
+    width: 200px; 
+    height: 75px;
+    background: white;
+    border: 1px solid black;
+}
+#annotations_labels {
+    z-index: 2;
+    position:absolute;
+}
+#yearsBar {
+    display:table;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top:25px;
+}
+#year_elements {
+    display:table-cell;
+    padding: 5px;
+    text-align: center;
+    width: fit-content;
+    background: white;
+    border: 1px solid black;
+}
+#landCoverDiv {
+    z-index: 1;
+    width: 1000px;
+    margin-left:auto;
+    margin-right:auto;
+}
+#dataSource {
+    width: 1000px;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top:25px;
+}
