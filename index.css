@@ -8,7 +8,6 @@
 #summaryText {
     text-align: left;
     margin-top: 50px;
-    margin-bottom: 50px;
 }
 path {
     stroke:black;
@@ -26,6 +25,7 @@ path {
 #annotations_labels {
     z-index: 2;
     position:absolute;
+    color:black;
 }
 #yearsBar {
     display:table;

@@ -1,12 +1,15 @@
 async function loadInitialChart()
             {
-                //Draw the introduction and summary 
+                //Draw the first three scenes 
+                drawLandCoverChart(2002, 1);     
+                drawLandCoverChart(2010, 2);
+                drawLandCoverChart(2020, 3);
 
                 //Draw Year bars
                 drawYearBars(2002);
 
                 //Draw Chart
-                drawLandCoverChart(2002);
+                drawLandCoverChart(2002, "");
             }
             function drawYearBars (year)
             {
@@ -57,19 +60,19 @@ async function loadInitialChart()
                             redrawChart(year);
                         });
             }
-            function drawAnnotations(annotations)
+            function drawAnnotations(annotations, chartNumber)
             {
-                console.log('drawAnnotations')
+                console.log('drawAnnotations for chart '+chartNumber)
 
                 // Add annotation to the chart
                 const makeAnnotations = d3.annotation()
                     .annotations(annotations)
 
-                d3.select("#landCoverChart")
+                d3.select("#landCoverChart"+chartNumber)
                     .select('#annotations_labels')
                     .remove();
 
-                d3.select("#landCoverChart")
+                d3.select("#landCoverChart"+chartNumber)
                     .append("g")
                         .attr('id', 'annotations_labels')
                     .call(makeAnnotations)
@@ -109,17 +112,14 @@ async function loadInitialChart()
                 d3.select('#landCoverChart')
                     .selectAll('rect')
                     .on("mouseover", function(d, i) {
-                        let tooltip_txt = ''
-                        if (i >= landCover_names.length)
-                            tooltip_txt = "Landcover: "+landCover_names[i - landCover_names.length]+"<br>Area burnt: " + landCover_values[i - landCover_names.length] +"ha (hectare)";
-                        else 
-                            tooltip_txt = "Landcover: "+landCover_names[i]+"<br>Area burnt: " + landCover_values[i] +"ha (hectare)";
+                        let landcover_name = i >= landCover_names.length ? landCover_names[i - landCover_names.length] : landCover_names[i];
+                        let areaBurnt = i >= landCover_names.length ? landCover_values[i - landCover_names.length] : landCover_values[i];
 
                         tooltip.style('opacity', 1)
                             .style("left",(d3.event.pageX)+"px")
                             .style("top",(d3.event.pageY)+"px")
                             .html(function () {
-                                return tooltip_txt
+                                return "Landcover: "+landcover_name +"<br>Area burnt: " + (areaBurnt/1000000).toFixed(2) +" million ha (hectare)";
                             });
                     })
                     .on("mouseout", function(d, i) {
@@ -136,11 +136,11 @@ async function loadInitialChart()
                     
                 //Draw annotations last
                 let annotations = await calculateAnnotations(year_data, x_scale, year);
-                drawAnnotations(annotations);
+                drawAnnotations(annotations, "");
             }
-            async function drawLandCoverChart(year)
+            async function drawLandCoverChart(year, chartNumber)
             {
-                console.log('drawLandCoverChart')
+                console.log('drawLandCoverChart for chart '+chartNumber)
                 const legendColors = ['red','yellow','blue','green','magenta']
 
                 let data = await loadData();
@@ -166,7 +166,7 @@ async function loadInitialChart()
 
                 let tooltip = d3.select('#tooltip');
 
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('transform','translate(35,100)')
                     .selectAll('rect')
@@ -183,17 +183,14 @@ async function loadInitialChart()
                         .attr('width', function(d, i) { return i >= landCover_names.length ? (900 - x_scale(landCover_values[i - landCover_names.length])) : x_scale(landCover_values[i])})
                         .attr('fill', function(d, i) { return i >= landCover_names.length ? 'white' : legendColors[i]})
                     .on("mouseover", function(d, i) {
-                        let tooltip_txt = ''
-                        if (i >= landCover_names.length)
-                            tooltip_txt = "Landcover: "+landCover_names[i - landCover_names.length]+"<br>Area burnt: " + landCover_values[i - landCover_names.length] +"ha (hectare)";
-                        else 
-                            tooltip_txt = "Landcover: "+landCover_names[i]+"<br>Area burnt: " + landCover_values[i] +"ha (hectare)";
+                        let landcover_name = i >= landCover_names.length ? landCover_names[i - landCover_names.length] : landCover_names[i];
+                        let areaBurnt = i >= landCover_names.length ? landCover_values[i - landCover_names.length] : landCover_values[i];
 
                         tooltip.style('opacity', 1)
                             .style("left",(d3.event.pageX)+"px")
                             .style("top",(d3.event.pageY)+"px")
                             .html(function () {
-                                return tooltip_txt
+                                return "Landcover: "+landcover_name +"<br>Area burnt: " + (areaBurnt/1000000).toFixed(2) +" million ha (hectare)";
                             });
                     })
                     .on("mouseout", function(d, i) {
@@ -201,18 +198,18 @@ async function loadInitialChart()
                     });
 
                 //Draw Axises for chart
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('transform','translate(35,100)')
                     .call(d3.axisLeft(y_scale).tickFormat(''));
 
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('transform','translate(35,600)')
                     .call(d3.axisBottom(x_scale).ticks(5).tickFormat(d3.format("~s")));
 
                 //Draw Axis title for chart
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('transform','translate(20, 375)')
                     .append('text')
@@ -220,7 +217,7 @@ async function loadInitialChart()
                         .attr("text-anchor", "start")
                         .text("LandCovers");
 
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('transform','translate(335, 640)')
                     .append('text')
@@ -228,7 +225,7 @@ async function loadInitialChart()
                         .text("LandCover Area Burnt by ha (Hectare)");
 
                 //Draw legend for chart
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('id', 'legend')
                         .attr('transform','translate(960, 100)')
@@ -241,7 +238,7 @@ async function loadInitialChart()
                         .attr('fill', function(d,i) { return d })
                         .attr('r', 5);
 
-                d3.select('#landCoverChart')
+                d3.select('#landCoverChart'+chartNumber)
                     .append('g')
                         .attr('id', 'legend')
                         .attr('transform','translate(945, 105)')
@@ -255,74 +252,155 @@ async function loadInitialChart()
                         .text(function(d) { return d; });
 
                 //Draw annotations last or else it bugs everything else
-                const annotations = [
-                    {
-                        note: {
-                            title: "Legend",
-                            label: "Each color represent a type of landcover",
+                let annotations = [];
+                if (chartNumber === '')
+                {
+                    annotations = [
+                        {
+                            note: {
+                                title: "Legend",
+                                label: "Each color represent a type of landcover",
+                            },
+                            type: d3.annotationCalloutRect,
+                            color:['black'],
+                            subject: {
+                                width: 200,
+                                height: 150
+                            },
+                            x: 785,
+                            y: 75,
+                            dy: 175,
+                            dx: -50
                         },
-                        type: d3.annotationCalloutRect,
-                        subject: {
-                            width: 200,
-                            height: 150
+                        {
+                            note: {
+                                title: "Croplands",
+                                label: "Areas of and used to grow crops",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Croplands']) + 35,
+                            y: 150,
+                            dy: -1,
+                            dx: 50
                         },
-                        x: 785,
-                        y: 75,
-                        dy: 175,
-                        dx: -50
-                    },
-                    {
-                        note: {
-                            title: "Croplands",
-                            label: "Areas of and used to grow crops",
+                        {
+                            note: {
+                                title: "Forests",
+                                label: "Areas of dense trees",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Forests']) + 35,
+                            y: 250,
+                            dy: -1,
+                            dx: 50
                         },
-                        x: x_scale(year_data[year]['Croplands']) + 35,
-                        y: 150,
-                        dy: -1,
-                        dx: 50
-                    },
-                    {
-                        note: {
-                            title: "Forests",
-                            label: "Areas of dense trees",
+                        {
+                            note: {
+                                title: "Others",
+                                label: "Areas of excluded landcovers",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Others']) + 35,
+                            y: 350,
+                            dy: -1,
+                            dx: 50
                         },
-                        x: x_scale(year_data[year]['Forests']) + 35,
-                        y: 250,
-                        dy: -1,
-                        dx: 50
-                    },
-                    {
-                        note: {
-                            title: "Others",
-                            label: "Areas of excluded landcovers",
+                        {
+                            note: {
+                                title: "Savannas",
+                                label: "Areas of mix woodland and grassland",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Savannas']) + 35,
+                            y: 450,
+                            dy: -1,
+                            dx: 20
                         },
-                        x: x_scale(year_data[year]['Others']) + 35,
-                        y: 350,
-                        dy: -1,
-                        dx: 50
-                    },
-                    {
-                        note: {
-                            title: "Savannas",
-                            label: "Areas of mix woodland and grassland",
+                        {
+                            note: {
+                                title: "Shrublands/Grasslands",
+                                label: "Areas of dense shrubs, short trees, and grass",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
+                            y: 550,
+                            dy: -50,
+                            dx: -10
+                        }
+                    ]
+                }
+                else if (chartNumber == 1)
+                {
+                    annotations = [
+                        {
+                            note: {
+                                title: "Croplands",
+                                label: "1.47x More Land Burnt than Forests",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Croplands']) + 35,
+                            y: 150,
+                            dy: -1,
+                            dx: 50
                         },
-                        x: x_scale(year_data[year]['Savannas']) + 35,
-                        y: 450,
-                        dy: -1,
-                        dx: 20
-                    },
-                    {
-                        note: {
-                            title: "Shrublands/Grasslands",
-                            label: "Areas of dense shrubs, short trees, and grass",
+                        {
+                            note: {
+                                title: "Savannas",
+                                label: "6.50x More Land Burnt than Forests",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Savannas']) + 35,
+                            y: 450,
+                            dy: -1,
+                            dx: 20
                         },
-                        x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
-                        y: 550,
-                        dy: -50,
-                        dx: -10
-                    }
-                ]
-                drawAnnotations(annotations);
+                        {
+                            note: {
+                                title: "Shrublands/Grasslands",
+                                label: "9.94x More Land Burnt than Forests",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
+                            y: 550,
+                            dy: -50,
+                            dx: -1
+                        }
+                    ]
+                }
+                else if (chartNumber == 2)
+                {
+                    annotations = [
+                        {
+                            note: {
+                                title: "Forests",
+                                label: "1.25x More Land Burnt than Croplands",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Forests']) + 35,
+                            y: 250,
+                            dy: -1,
+                            dx: 50
+                        },
+                    ]
+                }
+                else if (chartNumber == 3)
+                {
+                    annotations = [
+                        {
+                            note: {
+                                title: "Savannas",
+                                label: "1.05x More Land Burnt than Forests",
+                            },
+                            color:['black'],
+                            x: x_scale(year_data[year]['Savannas']) + 35,
+                            y: 450,
+                            dy: -1,
+                            dx: 20
+                        },
+                    ]
+                }
+                
+                drawAnnotations(annotations, chartNumber);
             }
             function calculateAnnotations(year_data, x_scale, year)
             {
@@ -348,9 +426,10 @@ async function loadInitialChart()
                 const annotation_bodies = [
                     {
                         note: {
-                            title: landcover_index_min == 0 ? 'Least % Growth From Prev Year' : 'Greatest % Growth From Prev Year',
-                            label: "Croplands " + (landcover_ratio[0] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[0].toFixed(2) +"%",
+                            title: landcover_index_min == 0 ? 'Least Multiple Diff From Prev Year' : 'Greatest Multiple Diff From Prev Year',
+                            label: "Croplands " + (landcover_ratio[0] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[0].toFixed(2) +"x",
                         },
+                        color:['black'],
                         x: x_scale(curr_year_data['Croplands']) + 35,
                         y: 150,
                         dy: -1,
@@ -358,9 +437,10 @@ async function loadInitialChart()
                     },
                     {
                         note: {
-                            title: landcover_index_min == 1 ? 'Least % Growth From Prev Year' : 'Greatest % Growth From Prev Year',
-                            label: "Forests " + (landcover_ratio[1] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[1].toFixed(2) +"%",
+                            title: landcover_index_min == 1 ? 'Least Multiple Diff From Prev Year' : 'Greatest Multiple Diff From Prev Year',
+                            label: "Forests " + (landcover_ratio[1] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[1].toFixed(2) +"x",
                         },
+                        color:['black'],
                         x: x_scale(curr_year_data['Forests']) + 35,
                         y: 250,
                         dy: -1,
@@ -368,9 +448,10 @@ async function loadInitialChart()
                     },
                     {
                         note: {
-                            title: landcover_index_min == 2 ? 'Least % Growth From Prev Year' : 'Greatest % Growth From Prev Year',
-                            label: "Others " + (landcover_ratio[2] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[2].toFixed(2) +"%",
+                            title: landcover_index_min == 2 ? 'Least Multiple Diff From Prev Year' : 'Greatest Multiple Diff From Prev Year',
+                            label: "Others " + (landcover_ratio[2] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[2].toFixed(2) +"x",
                         },
+                        color:['black'],
                         x: x_scale(curr_year_data['Others']) + 35,
                         y: 350,
                         dy: -1,
@@ -378,19 +459,21 @@ async function loadInitialChart()
                     },
                     {
                         note: {
-                            title: landcover_index_min == 3 ? 'Least % Growth From Prev Year' : 'Greatest % Growth From Prev Year',
-                            label: "Savannas " + (landcover_ratio[3] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[3].toFixed(2) +"%",
+                            title: landcover_index_min == 3 ? 'Least Multiple Diff From Prev Year' : 'Greatest Multiple Diff From Prev Year',
+                            label: "Savannas " + (landcover_ratio[3] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[3].toFixed(2) +"x",
                         },
+                        color:['black'],
                         x: x_scale(curr_year_data['Savannas']) + 35,
                         y: 450,
-                        dy: -1,
-                        dx: 50
+                        dy: -50,
+                        dx: -50
                     },
                     {
                         note: {
-                            title: landcover_index_min == 4 ? 'Least % Growth From Prev Year' : 'Greatest % Growth From Prev Year',
-                            label: "Shrublands/Grasslands " + (landcover_ratio[4] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[4].toFixed(2) +"%",
+                            title: landcover_index_min == 4 ? 'Least Multiple Difference From Prev Year' : 'Greatest Multiple Difference From Prev Year',
+                            label: "Shrublands/Grasslands " + (landcover_ratio[4] > 0 ? 'increased' : 'decreased') + " by " + landcover_ratio[4].toFixed(2) +"x",
                         },
+                        color:['black'],
                         x: x_scale(curr_year_data['Shrublands/Grasslands']) + 35,
                         y: 550,
                         dy: -1,
