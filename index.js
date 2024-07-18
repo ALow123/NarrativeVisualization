@@ -1,9 +1,9 @@
 async function loadInitialChart()
             {
                 //Draw the first three scenes 
-                drawLandCoverChart(2002, 1);     
-                drawLandCoverChart(2010, 2);
-                drawLandCoverChart(2020, 3);
+                drawLandCoverChart1(2002, 1);     
+                drawLandCoverChart2(2010, 2);
+                drawLandCoverChart3(2020, 3);
 
                 //Draw Year bars
                 drawYearBars(2002);
@@ -252,153 +252,491 @@ async function loadInitialChart()
                         .text(function(d) { return d; });
 
                 //Draw annotations last or else it bugs everything else
-                let annotations = [];
-                if (chartNumber === '')
+                const annotations = [
+                    {
+                        note: {
+                            title: "Legend",
+                            label: "Each color represent a type of landcover",
+                        },
+                        type: d3.annotationCalloutRect,
+                        color:['black'],
+                        subject: {
+                            width: 200,
+                            height: 150
+                        },
+                        x: 785,
+                        y: 75,
+                        dy: 175,
+                        dx: -50
+                    },
+                    {
+                        note: {
+                            title: "Croplands",
+                            label: "Areas of and used to grow crops",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Croplands']) + 35,
+                        y: 150,
+                        dy: -1,
+                        dx: 50
+                    },
+                    {
+                        note: {
+                            title: "Forests",
+                            label: "Areas of dense trees",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Forests']) + 35,
+                        y: 250,
+                        dy: -1,
+                        dx: 50
+                    },
+                    {
+                        note: {
+                            title: "Others",
+                            label: "Areas of excluded landcovers",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Others']) + 35,
+                        y: 350,
+                        dy: -1,
+                        dx: 50
+                    },
+                    {
+                        note: {
+                            title: "Savannas",
+                            label: "Areas of mix woodland and grassland",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Savannas']) + 35,
+                        y: 450,
+                        dy: -1,
+                        dx: 20
+                    },
+                    {
+                        note: {
+                            title: "Shrublands/Grasslands",
+                            label: "Areas of dense shrubs, short trees, and grass",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
+                        y: 550,
+                        dy: -50,
+                        dx: -10
+                    }
+                ]
+                
+                drawAnnotations(annotations, chartNumber);
+            }
+            async function drawLandCoverChart1(year, chartNumber)
+            {
+                console.log('drawLandCoverChart for chart '+chartNumber)
+                const legendColors = ['red','yellow','blue','green','magenta']
+
+                let data = await loadData();
+
+                let year_data = data[0];
+                let country_data = data[1];
+
+                let landCover_names = [];
+                let landCover_values = [];
+                for (const [landcover, landcover_value] of Object.entries(year_data[year]))
                 {
-                    annotations = [
-                        {
-                            note: {
-                                title: "Legend",
-                                label: "Each color represent a type of landcover",
-                            },
-                            type: d3.annotationCalloutRect,
-                            color:['black'],
-                            subject: {
-                                width: 200,
-                                height: 150
-                            },
-                            x: 785,
-                            y: 75,
-                            dy: 175,
-                            dx: -50
-                        },
-                        {
-                            note: {
-                                title: "Croplands",
-                                label: "Areas of and used to grow crops",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Croplands']) + 35,
-                            y: 150,
-                            dy: -1,
-                            dx: 50
-                        },
-                        {
-                            note: {
-                                title: "Forests",
-                                label: "Areas of dense trees",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Forests']) + 35,
-                            y: 250,
-                            dy: -1,
-                            dx: 50
-                        },
-                        {
-                            note: {
-                                title: "Others",
-                                label: "Areas of excluded landcovers",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Others']) + 35,
-                            y: 350,
-                            dy: -1,
-                            dx: 50
-                        },
-                        {
-                            note: {
-                                title: "Savannas",
-                                label: "Areas of mix woodland and grassland",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Savannas']) + 35,
-                            y: 450,
-                            dy: -1,
-                            dx: 20
-                        },
-                        {
-                            note: {
-                                title: "Shrublands/Grasslands",
-                                label: "Areas of dense shrubs, short trees, and grass",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
-                            y: 550,
-                            dy: -50,
-                            dx: -10
-                        }
-                    ]
+                    landCover_names.push(landcover);
+                    landCover_values.push(landcover_value);
                 }
-                else if (chartNumber == 1)
+                //Add twice the # of items in array with fake values for tooltip hover (Using landCover_values)
+                for (let i = 0; i < landCover_names.length; i++)
                 {
-                    annotations = [
-                        {
-                            note: {
-                                title: "Croplands",
-                                label: "1.47x More Land Burnt than Forests",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Croplands']) + 35,
-                            y: 150,
-                            dy: -1,
-                            dx: 50
-                        },
-                        {
-                            note: {
-                                title: "Savannas",
-                                label: "6.50x More Land Burnt than Forests",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Savannas']) + 35,
-                            y: 450,
-                            dy: -1,
-                            dx: 20
-                        },
-                        {
-                            note: {
-                                title: "Shrublands/Grasslands",
-                                label: "9.94x More Land Burnt than Forests",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
-                            y: 550,
-                            dy: -50,
-                            dx: -1
-                        }
-                    ]
+                    landCover_values.push(0)
                 }
-                else if (chartNumber == 2)
+
+                let x_scale = d3.scaleLinear().domain([Math.min(...landCover_values), Math.max(...landCover_values)]).range([0, 900]);
+                let y_scale = d3.scaleBand().domain(landCover_names).range([0, 500]);
+
+                let tooltip = d3.select('#tooltip');
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,100)')
+                    .selectAll('rect')
+                    .data(landCover_values)
+                    .enter()
+                    .append('rect')
+                        .attr('id', 'landCover_rectangle')
+                        .attr('x', function(d, i) { return i >= landCover_names.length ? x_scale(landCover_values[i - landCover_names.length]) : 0})
+                        .attr('y', function(d, i) { 
+                            let y = i >= landCover_names.length ? y_scale(landCover_names[i - landCover_names.length]) : y_scale(landCover_names[i])
+                            return y + (y_scale.bandwidth() * 0.1);
+                        })
+                        .attr('height', y_scale.bandwidth() * 0.8)
+                        .attr('width', function(d, i) { return i >= landCover_names.length ? (900 - x_scale(landCover_values[i - landCover_names.length])) : x_scale(landCover_values[i])})
+                        .attr('fill', function(d, i) { return i >= landCover_names.length ? 'white' : legendColors[i]})
+                    .on("mouseover", function(d, i) {
+                        let landcover_name = i >= landCover_names.length ? landCover_names[i - landCover_names.length] : landCover_names[i];
+                        let areaBurnt = i >= landCover_names.length ? landCover_values[i - landCover_names.length] : landCover_values[i];
+
+                        tooltip.style('opacity', 1)
+                            .style("left",(d3.event.pageX)+"px")
+                            .style("top",(d3.event.pageY)+"px")
+                            .html(function () {
+                                return "Landcover: "+landcover_name +"<br>Area burnt: " + (areaBurnt/1000000).toFixed(2) +" million ha (hectare)";
+                            });
+                    })
+                    .on("mouseout", function(d, i) {
+                        tooltip.style('opacity', 0);
+                    });
+
+                //Draw Axises for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,100)')
+                    .call(d3.axisLeft(y_scale).tickFormat(''));
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,600)')
+                    .call(d3.axisBottom(x_scale).ticks(5).tickFormat(d3.format("~s")));
+
+                //Draw Axis title for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(20, 375)')
+                    .append('text')
+                        .attr('transform','rotate(-90)')
+                        .attr("text-anchor", "start")
+                        .text("LandCovers");
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(335, 640)')
+                    .append('text')
+                        .attr("text-anchor", "start")
+                        .text("LandCover Area Burnt by ha (Hectare)");
+
+                //Draw legend for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('id', 'legend')
+                        .attr('transform','translate(960, 100)')
+                    .selectAll('circle')
+                    .data(legendColors)
+                    .enter()
+                    .append('circle')
+                        .attr('cx', function(d, i) { return 0 })
+                        .attr('cy', function(d, i) { return 25 * i })
+                        .attr('fill', function(d,i) { return d })
+                        .attr('r', 5);
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('id', 'legend')
+                        .attr('transform','translate(945, 105)')
+                    .selectAll('text')
+                    .data(landCover_names)
+                    .enter()
+                    .append('text')
+                        .attr("text-anchor", "end")
+                        .attr('x', function(d, i) { return 0 })
+                        .attr('y', function(d, i) { return 25 * i })
+                        .text(function(d) { return d; });
+
+                //Draw annotations last or else it bugs everything else
+                const annotations = [
+                    {
+                        note: {
+                            title: "Croplands",
+                            label: "1.47x More Land Burnt than Forests",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Croplands']) + 35,
+                        y: 150,
+                        dy: -1,
+                        dx: 50
+                    },
+                    {
+                        note: {
+                            title: "Savannas",
+                            label: "6.50x More Land Burnt than Forests",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Savannas']) + 35,
+                        y: 450,
+                        dy: -1,
+                        dx: 20
+                    },
+                    {
+                        note: {
+                            title: "Shrublands/Grasslands",
+                            label: "9.94x More Land Burnt than Forests",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Shrublands/Grasslands']) + 35,
+                        y: 550,
+                        dy: -50,
+                        dx: -1
+                    }
+                ]
+                
+                drawAnnotations(annotations, chartNumber);
+            }
+            async function drawLandCoverChart2(year, chartNumber)
+            {
+                console.log('drawLandCoverChart for chart '+chartNumber)
+                const legendColors = ['red','yellow','blue','green','magenta']
+
+                let data = await loadData();
+
+                let year_data = data[0];
+                let country_data = data[1];
+
+                let landCover_names = [];
+                let landCover_values = [];
+                for (const [landcover, landcover_value] of Object.entries(year_data[year]))
                 {
-                    annotations = [
-                        {
-                            note: {
-                                title: "Forests",
-                                label: "1.25x More Land Burnt than Croplands",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Forests']) + 35,
-                            y: 250,
-                            dy: -1,
-                            dx: 50
-                        },
-                    ]
+                    landCover_names.push(landcover);
+                    landCover_values.push(landcover_value);
                 }
-                else if (chartNumber == 3)
+                //Add twice the # of items in array with fake values for tooltip hover (Using landCover_values)
+                for (let i = 0; i < landCover_names.length; i++)
                 {
-                    annotations = [
-                        {
-                            note: {
-                                title: "Savannas",
-                                label: "1.05x More Land Burnt than Forests",
-                            },
-                            color:['black'],
-                            x: x_scale(year_data[year]['Savannas']) + 35,
-                            y: 450,
-                            dy: -1,
-                            dx: 20
-                        },
-                    ]
+                    landCover_values.push(0)
                 }
+
+                let x_scale = d3.scaleLinear().domain([Math.min(...landCover_values), Math.max(...landCover_values)]).range([0, 900]);
+                let y_scale = d3.scaleBand().domain(landCover_names).range([0, 500]);
+
+                let tooltip = d3.select('#tooltip');
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,100)')
+                    .selectAll('rect')
+                    .data(landCover_values)
+                    .enter()
+                    .append('rect')
+                        .attr('id', 'landCover_rectangle')
+                        .attr('x', function(d, i) { return i >= landCover_names.length ? x_scale(landCover_values[i - landCover_names.length]) : 0})
+                        .attr('y', function(d, i) { 
+                            let y = i >= landCover_names.length ? y_scale(landCover_names[i - landCover_names.length]) : y_scale(landCover_names[i])
+                            return y + (y_scale.bandwidth() * 0.1);
+                        })
+                        .attr('height', y_scale.bandwidth() * 0.8)
+                        .attr('width', function(d, i) { return i >= landCover_names.length ? (900 - x_scale(landCover_values[i - landCover_names.length])) : x_scale(landCover_values[i])})
+                        .attr('fill', function(d, i) { return i >= landCover_names.length ? 'white' : legendColors[i]})
+                    .on("mouseover", function(d, i) {
+                        let landcover_name = i >= landCover_names.length ? landCover_names[i - landCover_names.length] : landCover_names[i];
+                        let areaBurnt = i >= landCover_names.length ? landCover_values[i - landCover_names.length] : landCover_values[i];
+
+                        tooltip.style('opacity', 1)
+                            .style("left",(d3.event.pageX)+"px")
+                            .style("top",(d3.event.pageY)+"px")
+                            .html(function () {
+                                return "Landcover: "+landcover_name +"<br>Area burnt: " + (areaBurnt/1000000).toFixed(2) +" million ha (hectare)";
+                            });
+                    })
+                    .on("mouseout", function(d, i) {
+                        tooltip.style('opacity', 0);
+                    });
+
+                //Draw Axises for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,100)')
+                    .call(d3.axisLeft(y_scale).tickFormat(''));
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,600)')
+                    .call(d3.axisBottom(x_scale).ticks(5).tickFormat(d3.format("~s")));
+
+                //Draw Axis title for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(20, 375)')
+                    .append('text')
+                        .attr('transform','rotate(-90)')
+                        .attr("text-anchor", "start")
+                        .text("LandCovers");
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(335, 640)')
+                    .append('text')
+                        .attr("text-anchor", "start")
+                        .text("LandCover Area Burnt by ha (Hectare)");
+
+                //Draw legend for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('id', 'legend')
+                        .attr('transform','translate(960, 100)')
+                    .selectAll('circle')
+                    .data(legendColors)
+                    .enter()
+                    .append('circle')
+                        .attr('cx', function(d, i) { return 0 })
+                        .attr('cy', function(d, i) { return 25 * i })
+                        .attr('fill', function(d,i) { return d })
+                        .attr('r', 5);
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('id', 'legend')
+                        .attr('transform','translate(945, 105)')
+                    .selectAll('text')
+                    .data(landCover_names)
+                    .enter()
+                    .append('text')
+                        .attr("text-anchor", "end")
+                        .attr('x', function(d, i) { return 0 })
+                        .attr('y', function(d, i) { return 25 * i })
+                        .text(function(d) { return d; });
+
+                //Draw annotations last or else it bugs everything else
+                const annotations = [
+                    {
+                        note: {
+                            title: "Forests",
+                            label: "1.25x More Land Burnt than Croplands",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Forests']) + 35,
+                        y: 250,
+                        dy: -1,
+                        dx: 50
+                    },
+                ]
+                
+                drawAnnotations(annotations, chartNumber);
+            }
+            async function drawLandCoverChart3(year, chartNumber)
+            {
+                console.log('drawLandCoverChart for chart '+chartNumber)
+                const legendColors = ['red','yellow','blue','green','magenta']
+
+                let data = await loadData();
+
+                let year_data = data[0];
+                let country_data = data[1];
+
+                let landCover_names = [];
+                let landCover_values = [];
+                for (const [landcover, landcover_value] of Object.entries(year_data[year]))
+                {
+                    landCover_names.push(landcover);
+                    landCover_values.push(landcover_value);
+                }
+                //Add twice the # of items in array with fake values for tooltip hover (Using landCover_values)
+                for (let i = 0; i < landCover_names.length; i++)
+                {
+                    landCover_values.push(0)
+                }
+
+                let x_scale = d3.scaleLinear().domain([Math.min(...landCover_values), Math.max(...landCover_values)]).range([0, 900]);
+                let y_scale = d3.scaleBand().domain(landCover_names).range([0, 500]);
+
+                let tooltip = d3.select('#tooltip');
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,100)')
+                    .selectAll('rect')
+                    .data(landCover_values)
+                    .enter()
+                    .append('rect')
+                        .attr('id', 'landCover_rectangle')
+                        .attr('x', function(d, i) { return i >= landCover_names.length ? x_scale(landCover_values[i - landCover_names.length]) : 0})
+                        .attr('y', function(d, i) { 
+                            let y = i >= landCover_names.length ? y_scale(landCover_names[i - landCover_names.length]) : y_scale(landCover_names[i])
+                            return y + (y_scale.bandwidth() * 0.1);
+                        })
+                        .attr('height', y_scale.bandwidth() * 0.8)
+                        .attr('width', function(d, i) { return i >= landCover_names.length ? (900 - x_scale(landCover_values[i - landCover_names.length])) : x_scale(landCover_values[i])})
+                        .attr('fill', function(d, i) { return i >= landCover_names.length ? 'white' : legendColors[i]})
+                    .on("mouseover", function(d, i) {
+                        let landcover_name = i >= landCover_names.length ? landCover_names[i - landCover_names.length] : landCover_names[i];
+                        let areaBurnt = i >= landCover_names.length ? landCover_values[i - landCover_names.length] : landCover_values[i];
+
+                        tooltip.style('opacity', 1)
+                            .style("left",(d3.event.pageX)+"px")
+                            .style("top",(d3.event.pageY)+"px")
+                            .html(function () {
+                                return "Landcover: "+landcover_name +"<br>Area burnt: " + (areaBurnt/1000000).toFixed(2) +" million ha (hectare)";
+                            });
+                    })
+                    .on("mouseout", function(d, i) {
+                        tooltip.style('opacity', 0);
+                    });
+
+                //Draw Axises for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,100)')
+                    .call(d3.axisLeft(y_scale).tickFormat(''));
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(35,600)')
+                    .call(d3.axisBottom(x_scale).ticks(5).tickFormat(d3.format("~s")));
+
+                //Draw Axis title for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(20, 375)')
+                    .append('text')
+                        .attr('transform','rotate(-90)')
+                        .attr("text-anchor", "start")
+                        .text("LandCovers");
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('transform','translate(335, 640)')
+                    .append('text')
+                        .attr("text-anchor", "start")
+                        .text("LandCover Area Burnt by ha (Hectare)");
+
+                //Draw legend for chart
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('id', 'legend')
+                        .attr('transform','translate(960, 100)')
+                    .selectAll('circle')
+                    .data(legendColors)
+                    .enter()
+                    .append('circle')
+                        .attr('cx', function(d, i) { return 0 })
+                        .attr('cy', function(d, i) { return 25 * i })
+                        .attr('fill', function(d,i) { return d })
+                        .attr('r', 5);
+
+                d3.select('#landCoverChart'+chartNumber)
+                    .append('g')
+                        .attr('id', 'legend')
+                        .attr('transform','translate(945, 105)')
+                    .selectAll('text')
+                    .data(landCover_names)
+                    .enter()
+                    .append('text')
+                        .attr("text-anchor", "end")
+                        .attr('x', function(d, i) { return 0 })
+                        .attr('y', function(d, i) { return 25 * i })
+                        .text(function(d) { return d; });
+
+                //Draw annotations last or else it bugs everything else
+                const annotations = [
+                    {
+                        note: {
+                            title: "Savannas",
+                            label: "1.05x More Land Burnt than Forests",
+                        },
+                        color:['black'],
+                        x: x_scale(year_data[year]['Savannas']) + 35,
+                        y: 450,
+                        dy: -1,
+                        dx: 20
+                    },
+                ]
                 
                 drawAnnotations(annotations, chartNumber);
             }
